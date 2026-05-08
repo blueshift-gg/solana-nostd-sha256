@@ -2,13 +2,14 @@
 name = "solana-nostd-sha256"
 authors = ["Dean Little <@deanmlittle>"]
 description = "A more efficient, no_std implementation of SHA-256 for the Solana SVM"
+license = "MIT"
 version = "0.2.0"
 edition = "2024"
-license = "MIT"
 repository = "https://github.com/blueshift-gg/solana-nostd-sha256"
 readme = "Readme.md"
 keywords = ["solana", "sbpf", "sha256", "no-std", "crypto"]
 categories = ["cryptography", "no-std"]
+exclude = [".github/", ".gitignore"]
 
 [lib]
 

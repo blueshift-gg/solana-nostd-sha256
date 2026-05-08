@@ -56,6 +56,10 @@ pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
     hasher.finalize_into(out.into());
 }
 
+/// Hash `data` directly into the provided 32-byte buffer.
+///
+/// Use this when you want the digest written into pre-existing storage
+/// (e.g. a struct field) without an intermediate move.
 #[cfg(target_os = "solana")]
 #[inline(always)]
 pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {

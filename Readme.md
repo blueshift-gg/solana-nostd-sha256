@@ -1,32 +1,47 @@
 # Solana NoStd Sha256
 
-A more efficient implementation of Sha256 for SVM.
+[![CI](https://github.com/blueshift-gg/solana-nostd-sha256/actions/workflows/ci.yml/badge.svg)](https://github.com/blueshift-gg/solana-nostd-sha256/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/solana-nostd-sha256.svg)](https://crates.io/crates/solana-nostd-sha256)
+[![docs.rs](https://docs.rs/solana-nostd-sha256/badge.svg)](https://docs.rs/solana-nostd-sha256)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/blueshift-gg/solana-nostd-sha256/blob/master/LICENSE)
 
-# Installation
+A more efficient, `no_std` SHA-256 for the Solana SVM. Routes through the `sol_sha256` syscall on-chain (~100 CUs for `hashv(&[b"test"])` vs ~120 CUs for `solana_program::hash::hashv`) and falls through to the `sha2` crate off-chain so the same APIs work in host code.
 
-```cargo add solana-nostd-sha256```
+## Quick start
 
-# Features
+```toml
+[dependencies]
+solana-nostd-sha256 = "0.2.0"
+```
 
-- `#![no_std]` — first-class no-std support, on and off Solana.
-- Adds `hash_ref` which takes in any type that implements `AsRef<[u8]>`
-- No `Hash` struct. Returns `[u8;32]` directly.
-- Makes use of MaybeUninit to skip zero allocations
-- Adds `hash_into` to let you hash directly into a mutable buffer.
+```rust
+use solana_nostd_sha256::{hash, hash_ref, hashv};
 
-# Performance
+let a = hash(b"test");
+let b = hashv(&[b"hello", b" ", b"world"]);
+let c = hash_ref("any AsRef<[u8]>");
+```
 
-| library        | function          | CU cost |
-|----------------|-------------------|---------|
-| nostd-sha256   | hashv(&[b"test"]) | 100     |
-| nostd-sha256   | hash(b"test")     | 105     |
-| nostd-sha256   | hash_ref("test")  | 105     |
-| solana-program | hashv(&[b"test"]) | 120     |
-| solana-program | hash(b"test")     | 123     |
+The library is `#![no_std]`-clean for SBPF; no allocator setup required.
 
-# Benchmarking
+## Features
 
-CU usage is tracked under [svm-unit-test](https://github.com/blueshift-gg/svm-unit-test). With `cargo build-sbf` on `$PATH`:
+- Adds `hash_ref` which takes any type that implements `AsRef<[u8]>`
+- No `Hash` struct — returns `[u8; 32]` directly
+- Uses `MaybeUninit` to skip zero-initializing the output buffer
+- `hash_into` lets you hash directly into a pre-allocated buffer
+
+## Benchmarks
+
+On-chain compute unit cost per operation:
+
+| function            | CU cost |
+|---------------------|--------:|
+| `hashv(&[b"test"])` |     100 |
+| `hash(b"test")`     |     105 |
+| `hash_ref("test")`  |     105 |
+
+To reproduce, install `cargo build-sbf` (Solana CLI) and run:
 
 ```sh
 cargo test --test sbpf --jobs 1
@@ -39,3 +54,9 @@ svm_test `bench_hashv`    => 102 CUs
 svm_test `bench_hash`     => 106 CUs
 svm_test `bench_hash_ref` => 108 CUs
 ```
+
+The benchmarks compile each function into its own SBPF program and run it through [Mollusk](https://github.com/anza-xyz/mollusk) via [`svm-unit-test`](https://crates.io/crates/svm-unit-test).
+
+## License
+
+Licensed under the [MIT License](https://github.com/blueshift-gg/solana-nostd-sha256/blob/master/LICENSE). The license includes the standard "as-is" warranty disclaimer — use at your own risk.
