@@ -29,13 +29,13 @@ A more efficient implementation of Sha256 for SVM.
 CU usage is tracked under [svm-unit-test](https://github.com/blueshift-gg/svm-unit-test). With `cargo build-sbf` on `$PATH`:
 
 ```sh
-cargo test --test sbpf -- --nocapture
+cargo test --test sbpf --jobs 1
 ```
 
-Sample output (includes the SBPF entrypoint wrapper, ~12 CUs above the raw call):
+Sample output (includes the SBPF entrypoint wrapper, ~2 CUs above a raw call):
 
 ```
-svm_test `bench_hashv`    => 112 CUs
-svm_test `bench_hash`     => 113 CUs
-svm_test `bench_hash_ref` => 113 CUs
+svm_test `bench_hashv`    => 102 CUs
+svm_test `bench_hash`     => 106 CUs
+svm_test `bench_hash_ref` => 108 CUs
 ```
