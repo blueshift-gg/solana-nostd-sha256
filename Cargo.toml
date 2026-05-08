@@ -13,8 +13,17 @@ exclude = [".github/", ".gitignore"]
 
 [lib]
 
+[features]
+# Use the Upstream BPF/sBPFv3 static-syscall ABI (murmur3-hashed name → fn pointer
+# transmute) instead of dynamic `extern "C"` linking. Saves the PLT
+# relocation but requires a toolchain that supports static syscalls.
+static-syscalls = []
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
+
 [dev-dependencies]
 svm-unit-test = "0.1.5"
 
-[target.'cfg(not(target_os = "solana"))'.dependencies]
+[target.'cfg(not(any(target_arch = "bpf", target_os = "solana")))'.dependencies]
 sha2 = { version = "0.10.8", default-features = false }

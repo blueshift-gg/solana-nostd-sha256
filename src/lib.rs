@@ -9,15 +9,31 @@
 
 use core::mem::MaybeUninit;
 
-#[cfg(not(target_os = "solana"))]
+#[cfg(not(any(target_arch = "bpf", target_os = "solana")))]
 use sha2::{Digest, Sha256};
 
 /// Length of a SHA-256 digest, in bytes.
 pub const HASH_LENGTH: usize = 32;
 
-#[cfg(target_os = "solana")]
+#[cfg(all(
+    any(target_arch = "bpf", target_os = "solana"),
+    not(feature = "static-syscalls")
+))]
 unsafe extern "C" {
     fn sol_sha256(vals: *const u8, val_len: u64, hash_result: *mut u8) -> u64;
+}
+
+#[cfg(all(
+    any(target_arch = "bpf", target_os = "solana"),
+    feature = "static-syscalls"
+))]
+#[inline(always)]
+unsafe fn sol_sha256(vals: *const u8, val_len: u64, hash_result: *mut u8) -> u64 {
+    // murmur3_32(b"sol_sha256", 0) — precomputed
+    const SOL_SHA256_ID: usize = 0x11f49d86;
+    let syscall: extern "C" fn(*const u8, u64, *mut u8) -> u64 =
+        unsafe { core::mem::transmute(SOL_SHA256_ID) };
+    syscall(vals, val_len, hash_result)
 }
 
 /// Hash a single byte slice and return the digest by value.
